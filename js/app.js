@@ -11,6 +11,42 @@ const dec = new TextDecoder();
 let cryptoKey;
 let dbPromise;
 
+// Hash the passphrase for comparison with stored key
+async function hashPassphrase(passphrase) {
+  const salt = enc.encode('moi_program_salt');
+  const base = await crypto.subtle.importKey(
+    'raw',
+    enc.encode(passphrase),
+    'PBKDF2',
+    false,
+    ['deriveBits']
+  );
+  const bits = await crypto.subtle.deriveBits(
+    { name: 'PBKDF2', salt, iterations: 150000, hash: 'SHA-256' },
+    base,
+    256
+  );
+  return btoa(String.fromCharCode(...new Uint8Array(bits)));
+}
+
+// Derive AES-GCM encryption key
+async function deriveCryptoKey(passphrase) {
+  const salt = enc.encode('moi_program_salt');
+  const base = await crypto.subtle.importKey(
+    'raw',
+    enc.encode(passphrase),
+    'PBKDF2',
+    false,
+    ['deriveKey']
+  );
+  return crypto.subtle.deriveKey(
+    { name: 'PBKDF2', salt, iterations: 150000, hash: 'SHA-256' },
+    base,
+    { name: 'AES-GCM', length: 256 },
+    false,
+    ['encrypt', 'decrypt']
+  );
+}
 
 // Manage DB list and key hashes in localStorage
 function getDbList() { return JSON.parse(localStorage.getItem('moi_dbList') || '[]'); }
