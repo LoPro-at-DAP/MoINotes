@@ -1,5 +1,5 @@
 import { openDB, deleteDB } from 'https://unpkg.com/idb?module';
-let newDbCreated = false;
+
 let DB_NAME = null;
 const DB_VERSION = 1;
 const ENTITIES = [
@@ -256,6 +256,7 @@ document.getElementById('pass-submit').onclick = async () => {
     cryptoKey = key;
     console.log('✅ Key accepted. Unlocking DB:', dbName);
     await initDb(dbName);
+    let newDbCreated = false;
     ['call','action','results','speculation'].forEach(tab =>
       document.getElementById('nav-' + tab).classList.remove('disabled')
     );
