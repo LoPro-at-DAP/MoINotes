@@ -87,21 +87,22 @@ function showToast(msg, duration = 3000) {
 }
 
 // Create a new database
-document.getElementById('db-create').onclick = async () => {
-  const newDb = document.getElementById('db-new').value.trim();
-  if (newDb && !getDbList().includes(newDb)) {
-    const list = getDbList();
-    list.push(newDb);
-    saveDbList(list);
-    populateDbSelect();
-    document.getElementById('db-select').value = newDb;
-    document.getElementById('pass-input').value = '';
-    document.getElementById('pass-input').focus();
-    setDbJustCreated(newDb);
-    // await initDb(newDb);  // removed to delay DB open until passphrase is set
-    showToast(`Created DB: ${newDb}. Now enter a passphrase to secure it.`);
-  }
-};
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('db-create').onclick = async () => {
+    const newDb = document.getElementById('db-new').value.trim();
+    if (newDb && !getDbList().includes(newDb)) {
+      const list = getDbList();
+      list.push(newDb);
+      saveDbList(list);
+      populateDbSelect();
+      document.getElementById('db-select').value = newDb;
+      document.getElementById('pass-input').value = '';
+      document.getElementById('pass-input').focus();
+      setDbJustCreated(newDb);
+      // await initDb(newDb);  // removed to delay DB open until passphrase is set
+      showToast(`Created DB: ${newDb}. Now enter a passphrase to secure it.`);
+    }
+}};
 
 // Delete an existing database
 document.getElementById('db-delete').onclick = async () => {
