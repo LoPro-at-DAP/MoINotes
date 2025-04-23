@@ -81,13 +81,19 @@ document.getElementById('db-delete').onclick = async () => {
 // Derive AES‑GCM key from passphrase
 async function deriveKey(passphrase) {
   const salt = enc.encode('moi_program_salt');
-  const base = await crypto.subtle.importKey('raw', enc.encode(passphrase), 'PBKDF2', false, ['deriveKey']);
+  const base = await crypto.subtle.importKey(
+    'raw',
+    enc.encode(passphrase),
+    'PBKDF2',
+    false,
+    ['deriveKey']
+  );
   return crypto.subtle.deriveKey(
     { name: 'PBKDF2', salt, iterations: 150000, hash: 'SHA-256' },
     base,
     { name: 'AES-GCM', length: 256 },
-    false,
-    ['encrypt','decrypt']
+    true, // ✅ exportable key
+    ['encrypt', 'decrypt']
   );
 }
 
