@@ -258,7 +258,9 @@ if (!window.unlockBound) {
     try {
       console.log("🔐 Deriving key...");
       const key = await deriveKey(pass);
+      console.log("Derived key object:", key);
       const hash = await exportKeyHash(key);
+      console.log("Exporting hash...");
       const stored = getKeyHash(dbName);
 
       if (!stored && isDbJustCreated(dbName)) {
