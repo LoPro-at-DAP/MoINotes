@@ -86,7 +86,6 @@ function showToast(msg, duration = 3000) {
   setTimeout(() => toast.classList.remove('show'), duration);
 }
 
-// Create a new database
 document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('db-create').onclick = async () => {
     const newDb = document.getElementById('db-new').value.trim();
@@ -99,23 +98,23 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('pass-input').value = '';
       document.getElementById('pass-input').focus();
       setDbJustCreated(newDb);
-      // await initDb(newDb);  // removed to delay DB open until passphrase is set
       showToast(`Created DB: ${newDb}. Now enter a passphrase to secure it.`);
-    };
-}});
+    }
+  };
 
-// Delete an existing database
-document.getElementById('db-delete').onclick = async () => {
-  const name = document.getElementById('db-select').value;
-  if (name && confirm(`Delete database "${name}"? This cannot be undone.`)) {
-    await deleteDB(name);
-    const list = getDbList().filter(n => n !== name);
-    saveDbList(list);
-    localStorage.removeItem(`moi_key_${name}`);
-    populateDbSelect();
-    showToast(`Deleted DB: ${name}`);
-  }
-};
+  document.getElementById('db-delete').onclick = async () => {
+    const name = document.getElementById('db-select').value;
+    if (name && confirm(`Delete database "${name}"? This cannot be undone.`)) {
+      await deleteDB(name);
+      const list = getDbList().filter(n => n !== name);
+      saveDbList(list);
+      localStorage.removeItem(`moi_key_${name}`);
+      populateDbSelect();
+      showToast(`Deleted DB: ${name}`);
+    }
+  };
+});
+
 
 
 // Export raw key material for hashing
