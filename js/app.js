@@ -288,10 +288,11 @@ if (!window.unlockBound) {
       );
       document.getElementById('login-overlay').style.display = 'none';
       setActive('call', renderCall());
-    } catch {
-      document.getElementById('pass-error').textContent = 'Invalid passphrase or DB.';
-      document.getElementById('pass-input').classList.add('error-highlight');
-    }
+    } catch (err) {
+        console.error("❌ Unlock failed:", err);
+        document.getElementById('pass-error').textContent = 'Invalid passphrase or DB.';
+        document.getElementById('pass-input').classList.add('error-highlight');
+      }  
   });
 }
 
