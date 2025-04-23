@@ -1,0 +1,27 @@
+:root {
+  --primary-color: #2C3E50;
+  --accent-color: #E67E22;
+  --bg-color: #F9F9F9;
+  --text-color: #333;
+  --font-family: 'Helvetica Neue', Arial, sans-serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font-family); background: var(--bg-color); color: var(--text-color); }
+.app-header { background: var(--primary-color); color: #FFF; padding: 1rem; display: flex; align-items: center; }
+.logo { height: 2.5rem; margin-right: 1rem; }
+.app-nav ul { display: flex; background: #FFF; list-style: none; }
+.app-nav li { flex: 1; }
+.app-nav a { display: block; padding: .75rem; text-align: center; text-decoration: none; color: var(--primary-color); font-weight: bold; }
+.app-nav a.active, .app-nav a:hover { background: var(--accent-color); color: #FFF; }
+.app-content { padding: 1rem; }
+.form-section { margin-bottom: 2rem; }
+.form-section h2 { margin-bottom: .5rem; }
+.form-field { margin-bottom: 1rem; }
+.form-field label { display: block; margin-bottom: .25rem; }
+.form-field input, .form-field textarea, .form-field select { width: 100%; padding: .5rem; border: 1px solid #CCC; border-radius: .25rem; }
+.btn { padding: .75rem 1.5rem; background: var(--primary-color); color: #FFF; border: none; border-radius: .25rem; cursor: pointer; }
+.btn.small { padding: .5rem 1rem; font-size: .875rem; }
+.error-msg { color: #E74C3C; margin-top: .5rem; min-height: 1em; }
+.login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 100; }
+.login-box { background: #FFF; padding: 2rem; border-radius: .5rem; box-shadow: 0 0 10px rgba(0,0,0,0.3); width: 90%; max-width: 320px; }
+.login-box input { width: 100%; margin-bottom: 1rem; padding: .5rem; border: 1px solid #CCC; border-radius: .25rem; }
