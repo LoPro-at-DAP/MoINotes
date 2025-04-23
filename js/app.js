@@ -101,7 +101,7 @@ document.addEventListener('DOMContentLoaded', () => {
       setDbJustCreated(newDb);
       // await initDb(newDb);  // removed to delay DB open until passphrase is set
       showToast(`Created DB: ${newDb}. Now enter a passphrase to secure it.`);
-    }
+    };
 }};
 
 // Delete an existing database
