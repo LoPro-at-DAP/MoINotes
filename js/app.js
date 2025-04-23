@@ -10,16 +10,6 @@ const enc = new TextEncoder();
 const dec = new TextDecoder();
 let cryptoKey;
 let dbPromise;
-function setDbJustCreated(name) {
-  localStorage.setItem(`moi_created_${name}`, 'true');
-}
-function isDbJustCreated(name) {
-  return localStorage.getItem(`moi_created_${name}`) === 'true';
-}
-function clearDbJustCreated(name) {
-  localStorage.removeItem(`moi_created_${name}`);
-}
-
 
 
 // Manage DB list and key hashes in localStorage
@@ -59,7 +49,7 @@ document.getElementById('db-create').onclick = async () => {
     document.getElementById('db-select').value = newDb;
     document.getElementById('pass-input').value = '';
     document.getElementById('pass-input').focus();
-    setDbJustCreated(newDb);
+    newDbCreated = true; // ✅ This is what you're missing
     // await initDb(newDb);  // removed to delay DB open until passphrase is set
     showToast(`Created DB: ${newDb}. Now enter a passphrase to secure it.`);
   }
@@ -81,22 +71,16 @@ document.getElementById('db-delete').onclick = async () => {
 // Derive AES‑GCM key from passphrase
 async function deriveKey(passphrase) {
   const salt = enc.encode('moi_program_salt');
-  const base = await crypto.subtle.importKey(
-    'raw',
-    enc.encode(passphrase),
-    'PBKDF2',
-    false,
-    ['deriveKey']
-  );
-  const key = await crypto.subtle.deriveKey(
+  const base = await crypto.subtle.importKey('raw', enc.encode(passphrase), 'PBKDF2', false, ['deriveKey']);
+  return crypto.subtle.deriveKey(
     { name: 'PBKDF2', salt, iterations: 150000, hash: 'SHA-256' },
     base,
     { name: 'AES-GCM', length: 256 },
-    false, // ✅ MUST BE false — DO NOT try to export the key
-    ['encrypt', 'decrypt']
+    false,
+    ['encrypt','decrypt']
   );
-  return key;
 }
+
 // Export raw key material for hashing
 async function exportKeyHash(key) {
   const raw = await crypto.subtle.exportKey('raw', key);
@@ -252,6 +236,7 @@ function renderSection(title, fields, onSave) {
   };
 });
 
+let newDbCreated = false;
 if (!window.unlockBound) {
   window.unlockBound = true;
 
@@ -263,21 +248,19 @@ if (!window.unlockBound) {
 
     try {
       console.log("🔐 Deriving key...");
-      const key = await deriveKey(pass);
-      console.log("Derived key object:", key);
+      const hash = await hashPassphrase(pass);
+      const key = await deriveCryptoKey(pass);
       const hash = await exportKeyHash(key);
-      console.log("Exporting hash...");
       const stored = getKeyHash(dbName);
 
-      if (!stored && isDbJustCreated(dbName)) {
+      if (!stored && newDbCreated) {
         console.log("🔑 Saving new key for", dbName);
-        console.log("Just created:", isDbJustCreated(dbName));
+        console.log("newDbCreated:", newDbCreated);
         console.log("Derived hash:", hash);
         saveKeyHash(dbName, hash);
-        clearDbJustCreated(dbName);
         newDbCreated = false;
         showToast('🔐 New passphrase set. Remember this passphrase!');
-      } else if (!stored && !isDbJustCreated(dbName)) {
+      } else if (!stored && !newDbCreated) {
         console.error("❌ Tried to unlock existing DB but no key found.");
         throw new Error('Missing encryption key for existing DB. Cannot unlock.');
       } else if (stored !== hash) {
@@ -296,11 +279,10 @@ if (!window.unlockBound) {
       );
       document.getElementById('login-overlay').style.display = 'none';
       setActive('call', renderCall());
-    } catch (err) {
-        console.error("❌ Unlock failed:", err);
-        document.getElementById('pass-error').textContent = 'Invalid passphrase or DB.';
-        document.getElementById('pass-input').classList.add('error-highlight');
-      }  
+    } catch {
+      document.getElementById('pass-error').textContent = 'Invalid passphrase or DB.';
+      document.getElementById('pass-input').classList.add('error-highlight');
+    }
   });
 }
 
@@ -342,3 +324,4 @@ document.getElementById('backup-import').onchange = async e => {
   }
   showToast('Backup imported.');
 };
+
