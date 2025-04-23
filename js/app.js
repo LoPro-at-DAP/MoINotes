@@ -256,7 +256,7 @@ document.getElementById('pass-submit').onclick = async () => {
     cryptoKey = key;
     console.log('✅ Key accepted. Unlocking DB:', dbName);
     await initDb(dbName);
-    let newDbCreated = false;
+    newDbCreated = false;
     ['call','action','results','speculation'].forEach(tab =>
       document.getElementById('nav-' + tab).classList.remove('disabled')
     );
