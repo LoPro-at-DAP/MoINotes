@@ -10,6 +10,7 @@ const enc = new TextEncoder();
 const dec = new TextDecoder();
 let cryptoKey;
 let dbPromise;
+let newDbCreated = false;
 
 
 // Manage DB list and key hashes in localStorage
@@ -236,7 +237,6 @@ function renderSection(title, fields, onSave) {
   };
 });
 
-let newDbCreated = false;
 if (!window.unlockBound) {
   window.unlockBound = true;
 
@@ -323,4 +323,3 @@ document.getElementById('backup-import').onchange = async e => {
   }
   showToast('Backup imported.');
 };
-
