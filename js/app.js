@@ -246,11 +246,19 @@ document.getElementById('pass-submit').onclick = async () => {
     const hash = await exportKeyHash(key);
     const stored = getKeyHash(dbName);
     if (!stored && newDbCreated) {
+      console.log("🔑 Saving new key for", dbName);
+      console.log("newDbCreated:", newDbCreated);
+      console.log("Derived hash:", hash);
       saveKeyHash(dbName, hash);
+      newDbCreated = false;
       showToast('🔐 New passphrase set. Remember this passphrase!');
     } else if (!stored && !newDbCreated) {
+      console.error("❌ Tried to unlock existing DB but no key found.");
       throw new Error('Missing encryption key for existing DB. Cannot unlock.');
     } else if (stored !== hash) {
+      console.error("❌ Passphrase does not match stored hash.");
+      console.log("Stored:", stored);
+      console.log("Derived:", hash);
       throw new Error('bad key');
     }
     cryptoKey = key;
