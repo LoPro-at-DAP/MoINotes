@@ -250,7 +250,6 @@ if (!window.unlockBound) {
       console.log("🔐 Deriving key...");
       const hash = await hashPassphrase(pass);
       const key = await deriveCryptoKey(pass);
-      const hash = await exportKeyHash(key);
       const stored = getKeyHash(dbName);
 
       if (!stored && newDbCreated) {
