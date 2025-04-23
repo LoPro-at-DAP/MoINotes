@@ -1,5 +1,5 @@
 import { openDB, deleteDB } from 'https://unpkg.com/idb?module';
-
+let newDbCreated = false;
 let DB_NAME = null;
 const DB_VERSION = 1;
 const ENTITIES = [
@@ -245,10 +245,14 @@ document.getElementById('pass-submit').onclick = async () => {
     const key = await deriveKey(pass);
     const hash = await exportKeyHash(key);
     const stored = getKeyHash(dbName);
-    if (!stored) {
+    if (!stored && newDbCreated) {
       saveKeyHash(dbName, hash);
-      showToast('🔐 New passphrase set. Remember this passphrase to access your data!');
-    } else if (stored !== hash) throw new Error('bad key');
+      showToast('🔐 New passphrase set. Remember this passphrase!');
+    } else if (!stored && !newDbCreated) {
+      throw new Error('Missing encryption key for existing DB. Cannot unlock.');
+    } else if (stored !== hash) {
+      throw new Error('bad key');
+    }
     cryptoKey = key;
     console.log('✅ Key accepted. Unlocking DB:', dbName);
     await initDb(dbName);
