@@ -25,3 +25,20 @@ body { font-family: var(--font-family); background: var(--bg-color); color: var(
 .login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 100; }
 .login-box { background: #FFF; padding: 2rem; border-radius: .5rem; box-shadow: 0 0 10px rgba(0,0,0,0.3); width: 90%; max-width: 320px; }
 .login-box input { width: 100%; margin-bottom: 1rem; padding: .5rem; border: 1px solid #CCC; border-radius: .25rem; }
+
+.toast {
+  position: fixed;
+  bottom: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--accent-color);
+  color: #fff;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  display: none;
+  z-index: 9999;
+  transition: opacity 0.3s ease;
+}
+.toast.show {
+  display: block;
+}

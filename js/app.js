@@ -260,3 +260,35 @@ document.getElementById('pass-submit').onclick = async () => {
 };
 
 populateDbSelect();
+
+// Export database as JSON blob
+document.getElementById('nav-results').insertAdjacentHTML('afterend',
+  '<button id="backup-export" class="btn small">Export Backup</button><input type="file" id="backup-import" class="btn small" style="display:none;" accept=".json"><label for="backup-import" class="btn small">Import Backup</label>');
+
+document.getElementById('backup-export').onclick = async () => {
+  const db = await dbPromise;
+  const backup = {};
+  for (const store of ENTITIES) {
+    backup[store] = await db.getAll(store);
+  }
+  const blob = new Blob([JSON.stringify(backup)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = DB_NAME + '-backup.json';
+  a.click();
+};
+
+document.getElementById('backup-import').onchange = async e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const text = await file.text();
+  const data = JSON.parse(text);
+  const db = await dbPromise;
+  for (const store of ENTITIES) {
+    const tx = db.transaction(store, 'readwrite');
+    for (const item of data[store]) await tx.store.put(item);
+    await tx.done;
+  }
+  showToast('Backup imported.');
+};
