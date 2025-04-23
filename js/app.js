@@ -85,19 +85,18 @@ async function deriveKey(passphrase) {
     'raw',
     enc.encode(passphrase),
     'PBKDF2',
-    false, // Must be false for PBKDF2 base key
+    false,
     ['deriveKey']
   );
-  const derivedKey = await crypto.subtle.deriveKey(
+  const key = await crypto.subtle.deriveKey(
     { name: 'PBKDF2', salt, iterations: 150000, hash: 'SHA-256' },
     base,
     { name: 'AES-GCM', length: 256 },
-    true, // Allow export for hashing
+    false, // ✅ MUST BE false — DO NOT try to export the key
     ['encrypt', 'decrypt']
   );
-  return derivedKey;
+  return key;
 }
-
 // Export raw key material for hashing
 async function exportKeyHash(key) {
   const raw = await crypto.subtle.exportKey('raw', key);
@@ -272,7 +271,7 @@ if (!window.unlockBound) {
 
       if (!stored && isDbJustCreated(dbName)) {
         console.log("🔑 Saving new key for", dbName);
-        console.log("newDbCreated:", newDbCreated);
+        console.log("Just created:", isDbJustCreated(dbName));
         console.log("Derived hash:", hash);
         saveKeyHash(dbName, hash);
         clearDbJustCreated(dbName);
