@@ -11,6 +11,18 @@ const dec = new TextDecoder();
 let cryptoKey;
 let dbPromise;
 
+
+function setDbJustCreated(name) {
+  localStorage.setItem(`moi_created_${name}`, 'true');
+}
+function isDbJustCreated(name) {
+  return localStorage.getItem(`moi_created_${name}`) === 'true';
+}
+function clearDbJustCreated(name) {
+  localStorage.removeItem(`moi_created_${name}`);
+}
+
+
 // Hash the passphrase for comparison with stored key
 async function hashPassphrase(passphrase) {
   const salt = enc.encode('moi_program_salt');
@@ -85,7 +97,7 @@ document.getElementById('db-create').onclick = async () => {
     document.getElementById('db-select').value = newDb;
     document.getElementById('pass-input').value = '';
     document.getElementById('pass-input').focus();
-    newDbCreated = true; // ✅ This is what you're missing
+    setDbJustCreated(newDb);
     // await initDb(newDb);  // removed to delay DB open until passphrase is set
     showToast(`Created DB: ${newDb}. Now enter a passphrase to secure it.`);
   }
