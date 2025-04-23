@@ -48,6 +48,7 @@ document.getElementById('db-create').onclick = async () => {
     document.getElementById('db-select').value = newDb;
     document.getElementById('pass-input').value = '';
     document.getElementById('pass-input').focus();
+    newDbCreated = true; // ✅ This is what you're missing
     // await initDb(newDb);  // removed to delay DB open until passphrase is set
     showToast(`Created DB: ${newDb}. Now enter a passphrase to secure it.`);
   }
