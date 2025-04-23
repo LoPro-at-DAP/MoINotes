@@ -10,7 +10,16 @@ const enc = new TextEncoder();
 const dec = new TextDecoder();
 let cryptoKey;
 let dbPromise;
-let newDbCreated = false;
+function setDbJustCreated(name) {
+  localStorage.setItem(`moi_created_${name}`, 'true');
+}
+function isDbJustCreated(name) {
+  return localStorage.getItem(`moi_created_${name}`) === 'true';
+}
+function clearDbJustCreated(name) {
+  localStorage.removeItem(`moi_created_${name}`);
+}
+
 
 
 // Manage DB list and key hashes in localStorage
@@ -50,7 +59,7 @@ document.getElementById('db-create').onclick = async () => {
     document.getElementById('db-select').value = newDb;
     document.getElementById('pass-input').value = '';
     document.getElementById('pass-input').focus();
-    newDbCreated = true; // ✅ This is what you're missing
+    setDbJustCreated(newDb);
     // await initDb(newDb);  // removed to delay DB open until passphrase is set
     showToast(`Created DB: ${newDb}. Now enter a passphrase to secure it.`);
   }
@@ -252,14 +261,15 @@ if (!window.unlockBound) {
       const hash = await exportKeyHash(key);
       const stored = getKeyHash(dbName);
 
-      if (!stored && newDbCreated) {
+      if (!stored && isDbJustCreated(dbName)) {
         console.log("🔑 Saving new key for", dbName);
         console.log("newDbCreated:", newDbCreated);
         console.log("Derived hash:", hash);
         saveKeyHash(dbName, hash);
+        clearDbJustCreated(dbName);
         newDbCreated = false;
         showToast('🔐 New passphrase set. Remember this passphrase!');
-      } else if (!stored && !newDbCreated) {
+      } else if (!stored && !isDbJustCreated(dbName)) {
         console.error("❌ Tried to unlock existing DB but no key found.");
         throw new Error('Missing encryption key for existing DB. Cannot unlock.');
       } else if (stored !== hash) {
