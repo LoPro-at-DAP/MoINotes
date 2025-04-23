@@ -10,7 +10,7 @@ const enc = new TextEncoder();
 const dec = new TextDecoder();
 let cryptoKey;
 let dbPromise;
-let newDbCreated = false;
+
 
 // Manage DB list and key hashes in localStorage
 function getDbList() { return JSON.parse(localStorage.getItem('moi_dbList') || '[]'); }
@@ -236,6 +236,7 @@ function renderSection(title, fields, onSave) {
   };
 });
 
+let newDbCreated = false;
 if (!window.unlockBound) {
   window.unlockBound = true;
 
