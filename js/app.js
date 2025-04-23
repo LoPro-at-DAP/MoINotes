@@ -291,7 +291,6 @@ function renderSection(title, fields, onSave) {
   };
 });
 
-let newDbCreated = false;
 if (!window.unlockBound) {
   window.unlockBound = true;
 
@@ -307,14 +306,15 @@ if (!window.unlockBound) {
       const key = await deriveCryptoKey(pass);
       const stored = getKeyHash(dbName);
 
-      if (!stored && newDbCreated) {
+      if (!stored && isDbJustCreated(dbName)) {
         console.log("🔑 Saving new key for", dbName);
         console.log("newDbCreated:", newDbCreated);
         console.log("Derived hash:", hash);
         saveKeyHash(dbName, hash);
+        clearDbJustCreated(dbName);
         newDbCreated = false;
         showToast('🔐 New passphrase set. Remember this passphrase!');
-      } else if (!stored && !newDbCreated) {
+      } else if (!stored && !isDbJustCreated(dbName)) {
         console.error("❌ Tried to unlock existing DB but no key found.");
         throw new Error('Missing encryption key for existing DB. Cannot unlock.');
       } else if (stored !== hash) {
