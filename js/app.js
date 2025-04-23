@@ -48,7 +48,7 @@ document.getElementById('db-create').onclick = async () => {
     document.getElementById('db-select').value = newDb;
     document.getElementById('pass-input').value = '';
     document.getElementById('pass-input').focus();
-    await initDb(newDb);
+    // await initDb(newDb);  // removed to delay DB open until passphrase is set
     showToast(`Created DB: ${newDb}. Now enter a passphrase to secure it.`);
   }
 };
@@ -241,6 +241,7 @@ document.getElementById('pass-submit').onclick = async () => {
   document.getElementById('pass-input').classList.remove('error-highlight');
   try {
     // await initDb(dbName);  // moved to after key check
+    console.log("🔐 Deriving key...");
     const key = await deriveKey(pass);
     const hash = await exportKeyHash(key);
     const stored = getKeyHash(dbName);
@@ -249,6 +250,7 @@ document.getElementById('pass-submit').onclick = async () => {
       showToast('🔐 New passphrase set. Remember this passphrase to access your data!');
     } else if (stored !== hash) throw new Error('bad key');
     cryptoKey = key;
+    console.log('✅ Key accepted. Unlocking DB:', dbName);
     await initDb(dbName);
     ['call','action','results','speculation'].forEach(tab =>
       document.getElementById('nav-' + tab).classList.remove('disabled')
