@@ -234,47 +234,54 @@ function renderSection(title, fields, onSave) {
   };
 });
 
-document.getElementById('pass-submit').onclick = async () => {
-  const pass = document.getElementById('pass-input').value;
-  const dbName = document.getElementById('db-select').value;
-  document.getElementById('pass-error').textContent = '';
-  document.getElementById('pass-input').classList.remove('error-highlight');
-  try {
-    // await initDb(dbName);  // moved to after key check
-    console.log("🔐 Deriving key...");
-    const key = await deriveKey(pass);
-    const hash = await exportKeyHash(key);
-    const stored = getKeyHash(dbName);
-    if (!stored && newDbCreated) {
-      console.log("🔑 Saving new key for", dbName);
-      console.log("newDbCreated:", newDbCreated);
-      console.log("Derived hash:", hash);
-      saveKeyHash(dbName, hash);
+if (!window.unlockBound) {
+  window.unlockBound = true;
+
+  document.getElementById('pass-submit').addEventListener('click', async () => {
+    const pass = document.getElementById('pass-input').value;
+    const dbName = document.getElementById('db-select').value;
+    document.getElementById('pass-error').textContent = '';
+    document.getElementById('pass-input').classList.remove('error-highlight');
+
+    try {
+      console.log("🔐 Deriving key...");
+      const key = await deriveKey(pass);
+      const hash = await exportKeyHash(key);
+      const stored = getKeyHash(dbName);
+
+      if (!stored && newDbCreated) {
+        console.log("🔑 Saving new key for", dbName);
+        console.log("newDbCreated:", newDbCreated);
+        console.log("Derived hash:", hash);
+        saveKeyHash(dbName, hash);
+        newDbCreated = false;
+        showToast('🔐 New passphrase set. Remember this passphrase!');
+      } else if (!stored && !newDbCreated) {
+        console.error("❌ Tried to unlock existing DB but no key found.");
+        throw new Error('Missing encryption key for existing DB. Cannot unlock.');
+      } else if (stored !== hash) {
+        console.error("❌ Passphrase does not match stored hash.");
+        console.log("Stored:", stored);
+        console.log("Derived:", hash);
+        throw new Error('bad key');
+      }
+
+      cryptoKey = key;
+      console.log('✅ Key accepted. Unlocking DB:', dbName);
+      await initDb(dbName);
       newDbCreated = false;
-      showToast('🔐 New passphrase set. Remember this passphrase!');
-    } else if (!stored && !newDbCreated) {
-      console.error("❌ Tried to unlock existing DB but no key found.");
-      throw new Error('Missing encryption key for existing DB. Cannot unlock.');
-    } else if (stored !== hash) {
-      console.error("❌ Passphrase does not match stored hash.");
-      console.log("Stored:", stored);
-      console.log("Derived:", hash);
-      throw new Error('bad key');
+      ['call','action','results','speculation'].forEach(tab =>
+        document.getElementById('nav-' + tab).classList.remove('disabled')
+      );
+      document.getElementById('login-overlay').style.display = 'none';
+      setActive('call', renderCall());
+    } catch {
+      document.getElementById('pass-error').textContent = 'Invalid passphrase or DB.';
+      document.getElementById('pass-input').classList.add('error-highlight');
     }
-    cryptoKey = key;
-    console.log('✅ Key accepted. Unlocking DB:', dbName);
-    await initDb(dbName);
-    newDbCreated = false;
-    ['call','action','results','speculation'].forEach(tab =>
-      document.getElementById('nav-' + tab).classList.remove('disabled')
-    );
-    document.getElementById('login-overlay').style.display = 'none';
-    setActive('call', renderCall());
-  } catch {
-    document.getElementById('pass-error').textContent = 'Invalid passphrase or DB.';
-    document.getElementById('pass-input').classList.add('error-highlight');
-  }
-};
+  });
+}
+
 
 populateDbSelect();
 
