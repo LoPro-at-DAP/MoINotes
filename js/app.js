@@ -85,17 +85,18 @@ async function deriveKey(passphrase) {
     'raw',
     enc.encode(passphrase),
     'PBKDF2',
-    true, 
+    false, // ✅ MUST BE false or Chrome throws SyntaxError
     ['deriveKey']
   );
   return crypto.subtle.deriveKey(
     { name: 'PBKDF2', salt, iterations: 150000, hash: 'SHA-256' },
     base,
     { name: 'AES-GCM', length: 256 },
-    true, 
+    true, // ✅ allows exportKey(...) later
     ['encrypt', 'decrypt']
   );
 }
+
 
 // Export raw key material for hashing
 async function exportKeyHash(key) {
