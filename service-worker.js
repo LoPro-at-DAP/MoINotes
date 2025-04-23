@@ -1,11 +1,11 @@
 const CACHE_NAME = 'moi-notes-v1';
 const ASSETS = [
-  '/',
-  '/index.html',
-  '/css/styles.css',
-  '/js/app.js',
-  '/images/logo.png',
-  '/manifest.json'
+  './',
+  './index.html',
+  './css/styles.css',
+  './js/app.js',
+  './images/logo.png',
+  './manifest.json'
 ];
 
 self.addEventListener('install', event => {

@@ -6,6 +6,10 @@
   <title>MoI Field Notes</title>
   <link rel="manifest" href="manifest.json">
   <link rel="stylesheet" href="css/styles.css">
+
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="MoI Notes">
+  <link rel="apple-touch-icon" href="images/logo.png">
 </head>
 <body>
   <header class="app-header">
@@ -57,6 +61,8 @@
         .catch(err => console.error('SW registration failed:', err));
     }
   </script>
+
+  <div id="toast" class="toast"></div>
 </body>
 </html>
 
