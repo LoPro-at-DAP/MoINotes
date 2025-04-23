@@ -107,6 +107,7 @@ async function encryptObject(obj) {
 }
 
 async function decryptObject(r) {
+  if (!cryptoKey) throw new Error('Encryption key not set');
   const iv = new Uint8Array(r.iv);
   const data = new Uint8Array(r.data);
   const pt = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, cryptoKey, data);
@@ -239,7 +240,7 @@ document.getElementById('pass-submit').onclick = async () => {
   document.getElementById('pass-error').textContent = '';
   document.getElementById('pass-input').classList.remove('error-highlight');
   try {
-    await initDb(dbName);
+    // await initDb(dbName);  // moved to after key check
     const key = await deriveKey(pass);
     const hash = await exportKeyHash(key);
     const stored = getKeyHash(dbName);
@@ -248,6 +249,7 @@ document.getElementById('pass-submit').onclick = async () => {
       showToast('🔐 New passphrase set. Remember this passphrase to access your data!');
     } else if (stored !== hash) throw new Error('bad key');
     cryptoKey = key;
+    await initDb(dbName);
     ['call','action','results','speculation'].forEach(tab =>
       document.getElementById('nav-' + tab).classList.remove('disabled')
     );
