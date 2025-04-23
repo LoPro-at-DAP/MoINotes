@@ -325,7 +325,6 @@ if (!window.unlockBound) {
       cryptoKey = key;
       console.log('✅ Key accepted. Unlocking DB:', dbName);
       await initDb(dbName);
-      newDbCreated = false;
       ['call','action','results','speculation'].forEach(tab =>
         document.getElementById('nav-' + tab).classList.remove('disabled')
       );
