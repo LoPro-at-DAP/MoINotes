@@ -284,6 +284,10 @@ document.getElementById('backup-export').onclick = async () => {
 };
 
 document.getElementById('backup-import').onchange = async e => {
+  if (!cryptoKey) {
+    showToast('⚠️ Unlock DB with your passphrase first.', 4000);
+    return;
+  }
   const file = e.target.files[0];
   if (!file) return;
   const text = await file.text();
@@ -296,3 +300,4 @@ document.getElementById('backup-import').onchange = async e => {
   }
   showToast('Backup imported.');
 };
+
