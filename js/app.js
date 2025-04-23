@@ -308,11 +308,9 @@ if (!window.unlockBound) {
 
       if (!stored && isDbJustCreated(dbName)) {
         console.log("🔑 Saving new key for", dbName);
-        console.log("newDbCreated:", newDbCreated);
         console.log("Derived hash:", hash);
         saveKeyHash(dbName, hash);
         clearDbJustCreated(dbName);
-        newDbCreated = false;
         showToast('🔐 New passphrase set. Remember this passphrase!');
       } else if (!stored && !isDbJustCreated(dbName)) {
         console.error("❌ Tried to unlock existing DB but no key found.");
