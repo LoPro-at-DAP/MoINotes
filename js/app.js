@@ -11,11 +11,60 @@ const dec = new TextDecoder();
 let cryptoKey;
 let dbPromise;
 
+
+function setDbJustCreated(name) {
+  localStorage.setItem(moi_created_${name}, 'true');
+}
+function isDbJustCreated(name) {
+  return localStorage.getItem(moi_created_${name}) === 'true';
+}
+function clearDbJustCreated(name) {
+  localStorage.removeItem(moi_created_${name});
+}
+
+
+// Hash the passphrase for comparison with stored key
+async function hashPassphrase(passphrase) {
+  const salt = enc.encode('moi_program_salt');
+  const base = await crypto.subtle.importKey(
+    'raw',
+    enc.encode(passphrase),
+    'PBKDF2',
+    false,
+    ['deriveBits']
+  );
+  const bits = await crypto.subtle.deriveBits(
+    { name: 'PBKDF2', salt, iterations: 150000, hash: 'SHA-256' },
+    base,
+    256
+  );
+  return btoa(String.fromCharCode(...new Uint8Array(bits)));
+}
+
+// Derive AES-GCM encryption key
+async function deriveCryptoKey(passphrase) {
+  const salt = enc.encode('moi_program_salt');
+  const base = await crypto.subtle.importKey(
+    'raw',
+    enc.encode(passphrase),
+    'PBKDF2',
+    false,
+    ['deriveKey']
+  );
+  return crypto.subtle.deriveKey(
+    { name: 'PBKDF2', salt, iterations: 150000, hash: 'SHA-256' },
+    base,
+    { name: 'AES-GCM', length: 256 },
+    false,
+    ['encrypt', 'decrypt']
+  );
+}
+
 // Manage DB list and key hashes in localStorage
 function getDbList() { return JSON.parse(localStorage.getItem('moi_dbList') || '[]'); }
 function saveDbList(list) { localStorage.setItem('moi_dbList', JSON.stringify(list)); }
-function getKeyHash(name) { return localStorage.getItem(`moi_key_${name}`); }
-function saveKeyHash(name, hash) { localStorage.setItem(`moi_key_${name}`, hash); }
+function getKeyHash(name) { return localStorage.getItem(moi_key_${name}); }
+function saveKeyHash(name, hash) { localStorage.setItem(moi_key_${name}, hash); }
 
 // Populate the DB dropdown
 function populateDbSelect() {
@@ -37,47 +86,37 @@ function showToast(msg, duration = 3000) {
   setTimeout(() => toast.classList.remove('show'), duration);
 }
 
-// Create a new database
-document.getElementById('db-create').onclick = async () => {
-  const newDb = document.getElementById('db-new').value.trim();
-  if (newDb && !getDbList().includes(newDb)) {
-    const list = getDbList();
-    list.push(newDb);
-    saveDbList(list);
-    populateDbSelect();
-    document.getElementById('db-select').value = newDb;
-    document.getElementById('pass-input').value = '';
-    document.getElementById('pass-input').focus();
-    // await initDb(newDb);  // removed to delay DB open until passphrase is set
-    showToast(`Created DB: ${newDb}. Now enter a passphrase to secure it.`);
-  }
-};
+// Create Database
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('db-create').onclick = async () => {
+    const newDb = document.getElementById('db-new').value.trim();
+    if (newDb && !getDbList().includes(newDb)) {
+      const list = getDbList();
+      list.push(newDb);
+      saveDbList(list);
+      populateDbSelect();
+      document.getElementById('db-select').value = newDb;
+      document.getElementById('pass-input').value = '';
+      document.getElementById('pass-input').focus();
+      setDbJustCreated(newDb);
+      showToast(`Created DB: ${newDb}. Now enter a passphrase to secure it.`);
+    }
+  };
 
-// Delete an existing database
-document.getElementById('db-delete').onclick = async () => {
-  const name = document.getElementById('db-select').value;
-  if (name && confirm(`Delete database "${name}"? This cannot be undone.`)) {
-    await deleteDB(name);
-    const list = getDbList().filter(n => n !== name);
-    saveDbList(list);
-    localStorage.removeItem(`moi_key_${name}`);
-    populateDbSelect();
-    showToast(`Deleted DB: ${name}`);
-  }
-};
+  /Delete Database
+  document.getElementById('db-delete').onclick = async () => {
+    const name = document.getElementById('db-select').value;
+    if (name && confirm(`Delete database "${name}"? This cannot be undone.`)) {
+      await deleteDB(name);
+      const list = getDbList().filter(n => n !== name);
+      saveDbList(list);
+      localStorage.removeItem(`moi_key_${name}`);
+      populateDbSelect();
+      showToast(`Deleted DB: ${name}`);
+    }
+  };
+});
 
-// Derive AES‑GCM key from passphrase
-async function deriveKey(passphrase) {
-  const salt = enc.encode('moi_program_salt');
-  const base = await crypto.subtle.importKey('raw', enc.encode(passphrase), 'PBKDF2', false, ['deriveKey']);
-  return crypto.subtle.deriveKey(
-    { name: 'PBKDF2', salt, iterations: 150000, hash: 'SHA-256' },
-    base,
-    { name: 'AES-GCM', length: 256 },
-    false,
-    ['encrypt','decrypt']
-  );
-}
 
 // Export raw key material for hashing
 async function exportKeyHash(key) {
@@ -145,7 +184,7 @@ function setActive(tab, renderer) {
 }
 function renderCall() {
   const sec = document.createElement('div');
-  sec.innerHTML = `<h2>Call - The Need for Intervention</h2><p>Summarize urgent metrics and dispatch priorities.</p>`;
+  sec.innerHTML = <h2>Call - The Need for Intervention</h2><p>Summarize urgent metrics and dispatch priorities.</p>;
   return sec;
 }
 function renderAction() {
@@ -173,7 +212,7 @@ function renderAction() {
 }
 function renderResults() {
   const sec = document.createElement('div');
-  sec.innerHTML = `<h2>Results</h2><h3>Notes</h3><div id="notes-list">Loading...</div><h3>Relationships</h3><div id="rels-list">Loading...</div>`;
+  sec.innerHTML = <h2>Results</h2><h3>Notes</h3><div id="notes-list">Loading...</div><h3>Relationships</h3><div id="rels-list">Loading...</div>;
   loadResults(sec);
   return sec;
 }
@@ -186,13 +225,13 @@ async function loadResults(sec) {
     nl.innerHTML = '';
     notes.forEach(n => {
       const p = document.createElement('p');
-      p.textContent = `[PID:${n.participantId}] ${n.text}`;
+      p.textContent = [PID:${n.participantId}] ${n.text};
       nl.appendChild(p);
     });
     rl.innerHTML = '';
     rels.forEach(r => {
       const p = document.createElement('p');
-      p.textContent = `[${r.aId}↔${r.bId}] ${r.type}`;
+      p.textContent = [${r.aId}↔${r.bId}] ${r.type};
       rl.appendChild(p);
     });
   } catch {
@@ -202,20 +241,20 @@ async function loadResults(sec) {
 }
 function renderSpeculation() {
   const sec = document.createElement('div');
-  sec.innerHTML = `<h2>Speculation</h2><p>Future projections.</p>`;
+  sec.innerHTML = <h2>Speculation</h2><p>Future projections.</p>;
   return sec;
 }
 function renderSection(title, fields, onSave) {
   const sec = document.createElement('section');
   sec.className = 'form-section';
-  sec.innerHTML = `<h2>${title}</h2>`;
+  sec.innerHTML = <h2>${title}</h2>;
   fields.forEach(f => {
     const div = document.createElement('div');
     div.className = 'form-field';
-    div.innerHTML = `<label for="${f.id}">${f.label}</label>` +
+    div.innerHTML = <label for="${f.id}">${f.label}</label> +
       (f.type === 'textarea'
-        ? `<textarea id="${f.id}" rows="3"></textarea>`
-        : `<input id="${f.id}" type="${f.type}"/>`);
+        ? <textarea id="${f.id}" rows="3"></textarea>
+        : <input id="${f.id}" type="${f.type}"/>);
     sec.appendChild(div);
   });
   const btn = document.createElement('button');
@@ -234,34 +273,53 @@ function renderSection(title, fields, onSave) {
   };
 });
 
-document.getElementById('pass-submit').onclick = async () => {
-  const pass = document.getElementById('pass-input').value;
-  const dbName = document.getElementById('db-select').value;
-  document.getElementById('pass-error').textContent = '';
-  document.getElementById('pass-input').classList.remove('error-highlight');
-  try {
-    // await initDb(dbName);  // moved to after key check
-    console.log("🔐 Deriving key...");
-    const key = await deriveKey(pass);
-    const hash = await exportKeyHash(key);
-    const stored = getKeyHash(dbName);
-    if (!stored) {
-      saveKeyHash(dbName, hash);
-      showToast('🔐 New passphrase set. Remember this passphrase to access your data!');
-    } else if (stored !== hash) throw new Error('bad key');
-    cryptoKey = key;
-    console.log('✅ Key accepted. Unlocking DB:', dbName);
-    await initDb(dbName);
-    ['call','action','results','speculation'].forEach(tab =>
-      document.getElementById('nav-' + tab).classList.remove('disabled')
-    );
-    document.getElementById('login-overlay').style.display = 'none';
-    setActive('call', renderCall());
-  } catch {
-    document.getElementById('pass-error').textContent = 'Invalid passphrase or DB.';
-    document.getElementById('pass-input').classList.add('error-highlight');
-  }
-};
+if (!window.unlockBound) {
+  window.unlockBound = true;
+
+  document.getElementById('pass-submit').addEventListener('click', async () => {
+    const pass = document.getElementById('pass-input').value;
+    const dbName = document.getElementById('db-select').value;
+    document.getElementById('pass-error').textContent = '';
+    document.getElementById('pass-input').classList.remove('error-highlight');
+
+    try {
+      console.log("🔐 Deriving key...");
+      const hash = await hashPassphrase(pass);
+      const key = await deriveCryptoKey(pass);
+      const stored = getKeyHash(dbName);
+
+      if (!stored && isDbJustCreated(dbName)) {
+        console.log("🔑 Saving new key for", dbName);
+        console.log("Derived hash:", hash);
+        saveKeyHash(dbName, hash);
+        clearDbJustCreated(dbName);
+        showToast('🔐 New passphrase set. Remember this passphrase!');
+      } else if (!stored && !isDbJustCreated(dbName)) {
+        console.error("❌ Tried to unlock existing DB but no key found.");
+        throw new Error('Missing encryption key for existing DB. Cannot unlock.');
+      } else if (stored !== hash) {
+        console.error("❌ Passphrase does not match stored hash.");
+        console.log("Stored:", stored);
+        console.log("Derived:", hash);
+        throw new Error('bad key');
+      }
+
+      cryptoKey = key;
+      console.log('✅ Key accepted. Unlocking DB:', dbName);
+      await initDb(dbName);
+      ['call','action','results','speculation'].forEach(tab =>
+        document.getElementById('nav-' + tab).classList.remove('disabled')
+      );
+      document.getElementById('login-overlay').style.display = 'none';
+      setActive('call', renderCall());
+    } catch (err) {
+        console.error("🔴 UNLOCK ERROR:", err);
+        document.getElementById('pass-error').textContent = 'Invalid passphrase or DB.';
+        document.getElementById('pass-input').classList.add('error-highlight');
+      }
+  });
+}
+
 
 populateDbSelect();
 
@@ -284,6 +342,10 @@ document.getElementById('backup-export').onclick = async () => {
 };
 
 document.getElementById('backup-import').onchange = async e => {
+  if (!cryptoKey) {
+    showToast('⚠️ Unlock DB with your passphrase first.', 4000);
+    return;
+  }
   const file = e.target.files[0];
   if (!file) return;
   const text = await file.text();
