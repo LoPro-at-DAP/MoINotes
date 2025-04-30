@@ -13,13 +13,13 @@ let dbPromise;
 
 
 function setDbJustCreated(name) {
-  localStorage.setItem(moi_created_${name}, 'true');
+  localStorage.setItem(`moi_created_${name}`, 'true');
 }
 function isDbJustCreated(name) {
-  return localStorage.getItem(moi_created_${name}) === 'true';
+  return localStorage.getItem(`moi_created_${name}`) === 'true';
 }
 function clearDbJustCreated(name) {
-  localStorage.removeItem(moi_created_${name});
+  localStorage.removeItem(`moi_created_${name}`);
 }
 
 
@@ -63,8 +63,12 @@ async function deriveCryptoKey(passphrase) {
 // Manage DB list and key hashes in localStorage
 function getDbList() { return JSON.parse(localStorage.getItem('moi_dbList') || '[]'); }
 function saveDbList(list) { localStorage.setItem('moi_dbList', JSON.stringify(list)); }
-function getKeyHash(name) { return localStorage.getItem(moi_key_${name}); }
-function saveKeyHash(name, hash) { localStorage.setItem(moi_key_${name}, hash); }
+function getKeyHash(name) {
+  return localStorage.getItem(`moi_key_${name}`);
+}
+function saveKeyHash(name, hash) {
+  localStorage.setItem(`moi_key_${name}`, hash);
+}
 
 // Populate the DB dropdown
 function populateDbSelect() {
@@ -184,7 +188,10 @@ function setActive(tab, renderer) {
 }
 function renderCall() {
   const sec = document.createElement('div');
-  sec.innerHTML = <h2>Call - The Need for Intervention</h2><p>Summarize urgent metrics and dispatch priorities.</p>;
+  sec.innerHTML = `
+    <h2>Call – The Need for Intervention</h2>
+    <p>Summarize urgent metrics and dispatch priorities.</p>
+  `;
   return sec;
 }
 function renderAction() {
@@ -212,7 +219,13 @@ function renderAction() {
 }
 function renderResults() {
   const sec = document.createElement('div');
-  sec.innerHTML = <h2>Results</h2><h3>Notes</h3><div id="notes-list">Loading...</div><h3>Relationships</h3><div id="rels-list">Loading...</div>;
+  sec.innerHTML = `
+    <h2>Results</h2>
+    <h3>Notes</h3>
+    <div id="notes-list">Loading...</div>
+    <h3>Relationships</h3>
+    <div id="rels-list">Loading...</div>
+  `;
   loadResults(sec);
   return sec;
 }
@@ -225,13 +238,13 @@ async function loadResults(sec) {
     nl.innerHTML = '';
     notes.forEach(n => {
       const p = document.createElement('p');
-      p.textContent = [PID:${n.participantId}] ${n.text};
+      p.textContent = `[PID:${n.participantId}] ${n.text}`;
       nl.appendChild(p);
     });
     rl.innerHTML = '';
     rels.forEach(r => {
       const p = document.createElement('p');
-      p.textContent = [${r.aId}↔${r.bId}] ${r.type};
+      p.textContent = `[${r.aId}↔${r.bId}] ${r.type}`;
       rl.appendChild(p);
     });
   } catch {
@@ -241,20 +254,24 @@ async function loadResults(sec) {
 }
 function renderSpeculation() {
   const sec = document.createElement('div');
-  sec.innerHTML = <h2>Speculation</h2><p>Future projections.</p>;
+  sec.innerHTML = `
+    <h2>Speculation</h2>
+    <p>Future projections.</p>
+  `;
   return sec;
 }
 function renderSection(title, fields, onSave) {
   const sec = document.createElement('section');
   sec.className = 'form-section';
-  sec.innerHTML = <h2>${title}</h2>;
+  sec.innerHTML = `<h2>${title}</h2>`;
   fields.forEach(f => {
     const div = document.createElement('div');
     div.className = 'form-field';
-    div.innerHTML = <label for="${f.id}">${f.label}</label> +
-      (f.type === 'textarea'
-        ? <textarea id="${f.id}" rows="3"></textarea>
-        : <input id="${f.id}" type="${f.type}"/>);
+    div.innerHTML = 
+  `<label for="${f.id}">${f.label}</label>` +
+  (f.type === 'textarea'
+    ? `<textarea id="${f.id}" rows="3"></textarea>`
+    : `<input id="${f.id}" type="${f.type}"/>`);
     sec.appendChild(div);
   });
   const btn = document.createElement('button');
@@ -268,7 +285,13 @@ function renderSection(title, fields, onSave) {
   document.getElementById('nav-' + tab).onclick = e => {
     e.preventDefault();
     if (!e.target.classList.contains('disabled')) {
-      setActive(tab, { call: renderCall, action: renderAction, results: renderResults, speculation: renderSpeculation }[tab]());
+      setActive(tab,
+        { call: renderCall,
+          action: renderAction,
+          results: renderResults,
+          speculation: renderSpeculation
+        }[tab]
+      );
     }
   };
 });
@@ -311,7 +334,7 @@ if (!window.unlockBound) {
         document.getElementById('nav-' + tab).classList.remove('disabled')
       );
       document.getElementById('login-overlay').style.display = 'none';
-      setActive('call', renderCall());
+      setActive('call', renderCall);
     } catch (err) {
         console.error("🔴 UNLOCK ERROR:", err);
         document.getElementById('pass-error').textContent = 'Invalid passphrase or DB.';
