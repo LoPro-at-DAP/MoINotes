@@ -103,7 +103,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
-  /Delete Database
+  //Delete Database
   document.getElementById('db-delete').onclick = async () => {
     const name = document.getElementById('db-select').value;
     if (name && confirm(`Delete database "${name}"? This cannot be undone.`)) {
